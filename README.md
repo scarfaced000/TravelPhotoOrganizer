@@ -19,34 +19,6 @@
 ### 목표 결과
 **100장 → 35장 (65% 절약)** 으로 사진을 자동 정리하여 저장공간과 시간을 절약합니다.
 
-## 🏗️ 아키텍처
-
-### 3-Tier 구조
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │   Data Layer    │
-│                 │    │                 │    │                 │
-│ Azure Static    │───▶│ Azure App       │───▶│ Azure Blob      │
-│ Web Apps        │    │ Service +       │    │ Storage         │
-│ (React)         │    │ FastAPI         │    │ Azure SQL DB    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-### 핵심 Azure 서비스
-- **Azure Static Web Apps**: React 기반 프론트엔드 호스팅
-- **Azure App Service**: FastAPI 백엔드 서버 + Docker 컨테이너
-- **Azure Functions**: 서버리스 이미지 처리 로직
-- **Azure Service Bus**: 비동기 메시지 큐
-- **Azure OpenAI Service**: GPT-4 Vision, GPT-4 Turbo, DALL-E 3
-- **Azure Computer Vision**: 이미지 분석 및 유사도 비교
-- **Azure Blob Storage**: 3단계 스토리지 (uploads/albums/archive)
-- **Azure SQL Database**: 사진 메타데이터 관리
-- **Azure Maps API**: GPS → 한글 장소명 변환
-- **Azure Key Vault**: API 키 보안 관리
-- **Azure Monitor**: 성능 모니터링
-- **Azure API Management**: API 게이트웨이
-- **Azure AD B2C**: 사용자 인증
-
 ## 🚀 주요 기능
 
 ### 1. 장소별 자동 앨범 생성
@@ -66,22 +38,7 @@
 
 ## 🔄 서비스 워크플로우
 
-```mermaid
-graph TD
-    A[사진 업로드] --> B[Azure Blob Storage 임시 저장]
-    B --> C[Service Bus 큐에 작업 등록]
-    C --> D[Azure Functions 트리거]
-    D --> E[EXIF 데이터 추출]
-    E --> F[Azure Maps API 호출]
-    F --> G[Azure OpenAI 이미지 분석]
-    G --> H[Computer Vision 유사도 비교]
-    H --> I[SQL Database 메타데이터 저장]
-    I --> J[장소별 그룹핑]
-    J --> K[중복 사진 감지]
-    K --> L[Blob Storage 재구성]
-    L --> M[사용자 선택 UI]
-    M --> N[최종 정리 완료]
-```
+> 📝 **Note**: 워크플로우 구조도는 기존 아키텍처 다이어그램을 기반으로 추후 업데이트 예정입니다.
 
 ### 상세 처리 과정
 
@@ -110,6 +67,59 @@ graph TD
 5. **최종 결과**
    - 입력: 100장 → 출력: 35장 (65% 절약)
    - Azure Monitor로 처리 과정 모니터링
+
+## 🏗️ Infrastructure as Code
+
+### 📁 Terraform 코드 구조
+```
+├── main.tf              # 메인 설정
+├── variables.tf         # 변수 정의
+├── outputs.tf           # 출력값
+├── backend.tf           # State 원격 저장
+└── modules/
+    ├── network/         # Network 모듈
+    └── storage/         # Storage 모듈
+```
+
+### 🚀 배포 방법
+```bash
+# 초기화
+terraform init
+
+# 계획 확인
+terraform plan
+
+# 배포
+terraform apply
+```
+
+## 🏗️ 아키텍처
+
+### 3-Tier 구조 (추후 업데이트 예정)
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Backend       │    │   Data Layer    │
+│                 │    │                 │    │                 │
+│ Azure Static    │───▶│ Azure App       │───▶│ Azure Blob      │
+│ Web Apps        │    │ Service +       │    │ Storage         │
+│ (React)         │    │ FastAPI         │    │ Azure SQL DB    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### 핵심 Azure 서비스 (추후 추가 예정)
+- **Azure Static Web Apps**: React 기반 프론트엔드 호스팅
+- **Azure App Service**: FastAPI 백엔드 서버 + Docker 컨테이너
+- **Azure Functions**: 서버리스 이미지 처리 로직
+- **Azure Service Bus**: 비동기 메시지 큐
+- **Azure OpenAI Service**: GPT-4 Vision, GPT-4 Turbo, DALL-E 3
+- **Azure Computer Vision**: 이미지 분석 및 유사도 비교
+- **Azure Blob Storage**: 3단계 스토리지 (uploads/albums/archive)
+- **Azure SQL Database**: 사진 메타데이터 관리
+- **Azure Maps API**: GPS → 한글 장소명 변환
+- **Azure Key Vault**: API 키 보안 관리
+- **Azure Monitor**: 성능 모니터링
+- **Azure API Management**: API 게이트웨이
+- **Azure AD B2C**: 사용자 인증
 
 ## 🛠️ 기술 스택
 
@@ -142,26 +152,9 @@ graph TD
 - **Application Insights**: 사용자 행동 분석
 - **Log Analytics**: 로그 중앙 관리
 
-## 📊 프로젝트 구성 (Azure DevOps)
-
-### Epic 구조
-```
-📁 Travel Photo Organizer
-├── 🎯 Epic 1: 기획 및 설계
-│   ├── 📋 Feature 1.1: 구성도 완성
-│   └── 📋 Feature 1.2: 요구사항 정의
-├── 🎯 Epic 2: AI 기능 개발
-│   ├── 📋 Feature 2.1: OpenAI 연동
-│   └── 📋 Feature 2.2: 데이터 처리
-├── 🎯 Epic 3: 인프라 구축
-│   ├── 📋 Feature 3.1: 컨테이너화
-│   └── 📋 Feature 3.2: Azure 서비스 배포
-└── 🎯 Epic 4: 배포 및 모니터링
-    ├── 📋 Feature 4.1: CI/CD 파이프라인
-    └── 📋 Feature 4.2: 모니터링 설정
-```
-
 ## 💰 예상 비용
+
+월 예상 비용은 **$25-32**입니다. (AI Search 제외로 비용 절약)
 
 | 서비스 | 월 예상 비용 | 비고 |
 |--------|-------------|------|
@@ -171,7 +164,8 @@ graph TD
 | Azure Maps API | $1-2 | GPS 변환 |
 | Azure OpenAI Service | $3-5 | GPT-4 Vision 사용량 기반 |
 | Azure Computer Vision | $1-2 | 유사도 분석 |
-| **총 예상 비용** | **$25-32/월** | **AI Search 제외로 비용 절약** |
+
+> 💡 **상세 비용 계산**: [Azure Pricing Calculator](https://azure.microsoft.com/ko-kr/pricing/calculator/)에서 각 서비스별 정확한 비용을 확인하실 수 있습니다.
 
 ## 🚀 시작하기
 
@@ -213,56 +207,12 @@ npm start
 docker-compose up -d
 ```
 
-
 ## 📄 라이선스
 
 MIT License
 
 ## 👨‍💻 개발자
 
-**이채림** 
+**이채림**
 
 ---
-
-## 🏗️ Infrastructure as Code
-
-### Terraform으로 구축한 Azure 인프라
-
-**배포된 리소스 (총 10개)**
-
-#### Network Infrastructure
-- Resource Group: `rg-travelphoto-dev`
-- Virtual Network: `vnet-travelphoto` (10.0.0.0/16)
-- Public Subnet: 10.0.1.0/24
-- Private Subnet: 10.0.2.0/24
-- Network Security Group (HTTPS/HTTP 허용)
-
-#### Storage Infrastructure
-- Storage Account: `sttravelphotodev`
-- Blob Containers: `uploads`, `albums`, `archive`
-
-### 📁 Terraform 코드 구조
-```
-├── main.tf              # 메인 설정
-├── variables.tf         # 변수 정의
-├── outputs.tf           # 출력값
-├── backend.tf           # State 원격 저장
-└── modules/
-    ├── network/         # Network 모듈
-    └── storage/         # Storage 모듈
-```
-
-### 🚀 배포 방법
-```bash
-# 초기화
-terraform init
-
-# 계획 확인
-terraform plan
-
-# 배포
-terraform apply
-```
-
-
-
