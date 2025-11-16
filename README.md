@@ -221,3 +221,48 @@ MIT License
 ## 👨‍💻 개발자
 
 **이채림** 
+
+---
+
+## 🏗️ Infrastructure as Code
+
+### Terraform으로 구축한 Azure 인프라
+
+**배포된 리소스 (총 10개)**
+
+#### Network Infrastructure
+- Resource Group: `rg-travelphoto-dev`
+- Virtual Network: `vnet-travelphoto` (10.0.0.0/16)
+- Public Subnet: 10.0.1.0/24
+- Private Subnet: 10.0.2.0/24
+- Network Security Group (HTTPS/HTTP 허용)
+
+#### Storage Infrastructure
+- Storage Account: `sttravelphotodev`
+- Blob Containers: `uploads`, `albums`, `archive`
+
+### 📁 Terraform 코드 구조
+```
+├── main.tf              # 메인 설정
+├── variables.tf         # 변수 정의
+├── outputs.tf           # 출력값
+├── backend.tf           # State 원격 저장
+└── modules/
+    ├── network/         # Network 모듈
+    └── storage/         # Storage 모듈
+```
+
+### 🚀 배포 방법
+```bash
+# 초기화
+terraform init
+
+# 계획 확인
+terraform plan
+
+# 배포
+terraform apply
+```
+
+자세한 내용은 `SUBMISSION.md` 참고
+
