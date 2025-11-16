@@ -38,7 +38,22 @@
 
 ## 🔄 서비스 워크플로우
 
-> 📝 **Note**: 워크플로우 구조도는 기존 아키텍처 다이어그램을 기반으로 추후 업데이트 예정입니다.
+<img width="850" height="772" alt="image" src="https://github.com/user-attachments/assets/c1a95acc-96d8-4b5d-a927-eb6bdc5300ad" />
+
+1 사진 업로드
+사용자 → DNS → Static Web Apps
+2 업로드 전송
+Static Web Apps → Application Gateway → App Service
+3 파일 저장
+App Service → Blob Storage
+4 EXIF 분석
+Functions → Blob Storage
+5 메타데이터 저장
+Functions → Cosmos DB
+6 결과 조회
+App Service → Cosmos DB
+7 최종 정리
+App Service → Blob Storage (albums 폴더로 이동)
 
 ### 상세 처리 과정
 
