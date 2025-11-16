@@ -264,5 +264,5 @@ terraform plan
 terraform apply
 ```
 
-자세한 내용은 `SUBMISSION.md` 참고
+
 
