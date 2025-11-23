@@ -6,20 +6,20 @@
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 ![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
 
-## 🌟 프로젝트 개요
+## 프로젝트 개요
 
 여행 후 수백 장의 사진을 GPS 기반으로 **자동 정리**하고 **중복 사진을 제거**하는 Azure 클라우드 서비스입니다.
 
 ### 해결하려는 문제
-- 📷 여행 후 수백 장 사진 정리에 많은 시간 소모
-- 🔄 같은 장소에서 비슷하게 찍은 중복 사진들
-- 📍 어디서 찍었는지 기억나지 않는 사진들
-- ✨ SNS용 베스트샷 선별의 어려움
+- 여행 후 수백 장 사진 정리에 많은 시간 소모
+- 같은 장소에서 비슷하게 찍은 중복 사진들
+- 어디서 찍었는지 기억나지 않는 사진들
+- SNS용 베스트샷 선별의 어려움
 
 ### 목표 결과
 **100장 → 35장 (65% 절약)** 으로 사진을 자동 정리하여 저장공간과 시간을 절약합니다.
 
-## 🚀 주요 기능
+##  주요 기능
 
 ### 1. 장소별 자동 앨범 생성
 - EXIF 데이터에서 GPS 좌표 추출
@@ -36,7 +36,7 @@
 - 사진 제목 및 태그 자동 생성
 - 촬영 장소 및 상황 추론
 
-## 🔄 서비스 워크플로우
+##  서비스 워크플로우
 
 <img width="850" height="772" alt="image" src="https://github.com/user-attachments/assets/c1a95acc-96d8-4b5d-a927-eb6bdc5300ad" />
 
@@ -83,9 +83,9 @@ App Service → Blob Storage (albums 폴더로 이동)
    - 입력: 100장 → 출력: 35장 (65% 절약)
    - Azure Monitor로 처리 과정 모니터링
 
-## 🏗️ Infrastructure as Code
+## Infrastructure as Code
 
-### 📁 Terraform 코드 구조
+###  Terraform 코드 구조
 ```
 ├── main.tf              # 메인 설정
 ├── variables.tf         # 변수 정의
@@ -96,7 +96,7 @@ App Service → Blob Storage (albums 폴더로 이동)
     └── storage/         # Storage 모듈
 ```
 
-### 🚀 배포 방법
+###  배포 방법
 ```bash
 # 초기화
 terraform init
@@ -108,7 +108,7 @@ terraform plan
 terraform apply
 ```
 
-## 🏗️ 아키텍처
+##  아키텍처
 
 ### 3-Tier 구조 (추후 업데이트 예정)
 ```
@@ -136,7 +136,7 @@ terraform apply
 - **Azure API Management**: API 게이트웨이
 - **Azure AD B2C**: 사용자 인증
 
-## 🛠️ 기술 스택
+##  기술 스택
 
 ### Frontend
 - **React**: 사용자 인터페이스
@@ -167,7 +167,7 @@ terraform apply
 - **Application Insights**: 사용자 행동 분석
 - **Log Analytics**: 로그 중앙 관리
 
-## 💰 예상 비용
+##  예상 비용
 
 월 예상 비용은 **$25-32**입니다. (AI Search 제외로 비용 절약)
 
@@ -180,9 +180,9 @@ terraform apply
 | Azure OpenAI Service | $3-5 | GPT-4 Vision 사용량 기반 |
 | Azure Computer Vision | $1-2 | 유사도 분석 |
 
-> 💡 **상세 비용 계산**: [Azure Pricing Calculator](https://azure.microsoft.com/ko-kr/pricing/calculator/)에서 각 서비스별 정확한 비용을 확인하실 수 있습니다.
+>  **상세 비용 계산**: [Azure Pricing Calculator](https://azure.microsoft.com/ko-kr/pricing/calculator/)에서 각 서비스별 정확한 비용을 확인하실 수 있습니다.
 
-## 🚀 시작하기
+##  시작하기
 
 ### 필수 요구사항
 - Azure 구독
@@ -222,7 +222,7 @@ npm start
 docker-compose up -d
 ```
 
-## 📄 라이선스
+##  라이선스
 
 MIT License
 
