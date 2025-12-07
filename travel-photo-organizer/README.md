@@ -171,6 +171,8 @@ docker run -p 8000:8000 travel-photo-backend
 ```
 
 ### **데이터 플로우**
+<img width="850" height="772" alt="image" src="https://github.com/user-attachments/assets/ec2ec891-2451-4a43-bb55-b5c507442abd" />
+
 ```
 사진 업로드 
    ↓
