@@ -41,3 +41,8 @@ variable "private_subnet_prefix" {
   type        = string
   default     = "10.0.2.0/24"
 }
+variable "container_image" {
+  description = "Container 이미지"
+  type        = string
+  default     = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+}

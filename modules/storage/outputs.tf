@@ -23,3 +23,8 @@ output "container_names" {
   description = "Created container names"
   value       = [for c in azurerm_storage_container.containers : c.name]
 }
+output "primary_access_key" {
+  description = "Storage Account Primary Access Key"
+  value       = azurerm_storage_account.main.primary_access_key
+  sensitive   = true
+}

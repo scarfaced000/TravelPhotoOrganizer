@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Photo Organizer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 30px;
+            background: #f8f9ff;
+        }
+        .upload-area:hover {
+            background: #e8ebff;
+            border-color: #764ba2;
+            transform: translateY(-2px);
+        }
+        .upload-area.dragover {
+            background: #d8dcff;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        input[type="file"] { display: none; }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            background: #fff3cd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .loading.show { display: block; }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .result {
+            margin-top: 20px;
+            display: none;
+        }
+        .result.show { display: block; }
+        .photo-info {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .photo-info:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .photo-info h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .photo-info p {
+            margin: 8px 0;
+            color: #555;
+            line-height: 1.6;
+        }
+        .photo-info strong {
+            color: #333;
+            font-weight: 600;
+        }
+        .success-border { border-left-color: #28a745; }
+        .error-border { border-left-color: #dc3545; }
+        .map-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .map-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Travel Photo Organizer</h1>
+        <p class="subtitle">여행 사진의 GPS 정보와 촬영 장소를 자동으로 추출합니다</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">🖼️</div>
+            <h2>사진을 드래그하거나 클릭하세요</h2>
+            <p style="margin-top: 15px; color: #666;">
+                JPG, PNG 등 이미지 파일 지원<br>
+                여러 장을 한 번에 업로드할 수 있습니다
+            </p>
+            <input type="file" id="fileInput" accept="image/*" multiple>
+            <button class="btn" onclick="document.getElementById('fileInput').click()">
+                📁 파일 선택하기
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <h3>⏳ 사진 분석 중...</h3>
+            <p>GPS 정보 추출 및 장소명 변환 중입니다</p>
+        </div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+
+        // 드래그 앤 드롭
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        // 파일 선택
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        async function handleFiles(files) {
+            loading.classList.add('show');
+            result.innerHTML = '';
+            result.classList.remove('show');
+
+            for (let file of files) {
+                await uploadPhoto(file);
+            }
+
+            loading.classList.remove('show');
+        }
+
+        async function uploadPhoto(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_URL}/api/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                displayResult(data);
+            } catch (error) {
+                console.error('Upload error:', error);
+                result.innerHTML += `
+                    <div class="photo-info error-border">
+                        <h3>❌ ${file.name}</h3>
+                        <p>업로드 실패: ${error.message}</p>
+                    </div>
+                `;
+                result.classList.add('show');
+            }
+        }
+
+        function displayResult(data) {
+            const gps = data.exif?.gps;
+            const location = data.location;
+            
+            let html = `
+                <div class="photo-info ${data.success ? 'success-border' : 'error-border'}">
+                    <h3>✅ ${data.filename}</h3>
+                    <p><strong>📦 파일 ID:</strong> ${data.file_id}</p>
+            `;
+
+            // GPS 정보
+            if (gps && gps.latitude) {
+                html += `
+                    <p><strong>📍 GPS 좌표:</strong> 
+                        위도 ${gps.latitude.toFixed(6)}°, 
+                        경도 ${gps.longitude.toFixed(6)}°
+                    </p>
+                    <a href="https://www.google.com/maps?q=${gps.latitude},${gps.longitude}" 
+                       target="_blank" class="map-link">
+                        🗺️ Google Maps에서 보기
+                    </a>
+                `;
+            } else {
+                html += `<p style="color: #999;">📍 GPS 정보 없음</p>`;
+            }
+
+            // 장소 정보
+            if (location && location.location_name) {
+                html += `
+                    <p><strong>�� 장소:</strong> ${location.location_name}</p>
+                    <p><strong>📮 주소:</strong> ${location.display_name}</p>
+                `;
+            } else if (gps && gps.latitude) {
+                html += `<p style="color: #999;">🌏 장소명 변환 대기 중...</p>`;
+            }
+
+            // 촬영 시간
+            if (data.exif?.datetime) {
+                html += `<p><strong>📅 촬영 시간:</strong> ${data.exif.datetime}</p>`;
+            }
+
+            // 카메라 정보
+            if (data.exif?.camera) {
+                html += `<p><strong>📷 카메라:</strong> ${data.exif.camera}</p>`;
+            }
+
+            html += `</div>`;
+            result.innerHTML += html;
+            result.classList.add('show');
+        }
+    </script>
+</body>
+</html>

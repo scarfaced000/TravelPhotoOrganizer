@@ -32,3 +32,18 @@ output "container_names" {
   description = "Container names"
   value       = module.storage.container_names
 }
+
+output "container_app_url" {
+  description = "Container App 접속 URL"
+  value       = module.container_apps.container_app_url
+}
+
+output "container_app_fqdn" {
+  description = "Container App FQDN"
+  value       = module.container_apps.container_app_fqdn
+}
+
+output "log_analytics_workspace_id" {
+  description = "Log Analytics Workspace ID"
+  value       = module.log_analytics.workspace_id
+}
