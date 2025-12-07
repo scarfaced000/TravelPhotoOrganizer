@@ -243,7 +243,7 @@ terraform apply
 ---
 
 ##  **예상 비용**
-
+ **상세 비용 계산**: [Azure Pricing Calculator](https://azure.microsoft.com/ko-kr/pricing/calculator/)에서 정확한 비용 확인 가능
 | Azure 서비스 | 월 예상 비용 |
 |--------------|--------------|
 | App Service (B1) | $13 |
