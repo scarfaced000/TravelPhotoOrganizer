@@ -1,8 +1,46 @@
-venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# 환경변수
 .env
+*.env
+
+# 업로드된 파일
 uploads/
+albums/
+*.jpg
+*.jpeg
+*.png
+*.gif
+
+# 메타데이터
+photo_metadata.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Terraform
 .terraform/
 *.tfstate
+*.tfstate.*
 *.tfstate.backup
+.terraform.lock.hcl
+terraform.tfvars

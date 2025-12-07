@@ -67,7 +67,7 @@ variable "ingress_external_enabled" {
 variable "ingress_target_port" {
   description = "컨테이너 포트"
   type        = number
-  default     = 8000
+  default     = 80
 }
 
 variable "environment_variables" {
