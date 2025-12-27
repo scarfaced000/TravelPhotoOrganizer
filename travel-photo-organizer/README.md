@@ -1,8 +1,8 @@
 # 📸 Travel Photo Organizer
 
-**여행 사진을 GPS 정보 기반으로 자동 정리하는 클라우드 기반 서비스**
+**Azure 클라우드 기반 여행 사진 자동 정리 시스템**
 
-![Python](https://img.shields.io/badge/Python-3.9-blue)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.104-green)
 ![Azure](https://img.shields.io/badge/Azure-Cloud-0089D6)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED)
@@ -10,13 +10,47 @@
 
 ---
 
+## 🏗️ **Infrastructure Architecture**
+
+### **Azure 인프라 구성도**
+
+<img width="850" height="772" alt="Azure Architecture" src="https://github.com/user-attachments/assets/ec2ec891-2451-4a43-bb55-b5c507442abd" />
+
+### **배포된 리소스 (현재 상태)**
+
+#### ✅ **완료된 인프라**
+```
+Resource Group: rg-travelphoto-dev (Korea Central)
+
+Network Layer:
+├── Virtual Network: vnet-travelphoto (10.0.0.0/16)
+│   ├── Public Subnet: 10.0.1.0/24
+│   ├── Private Subnet: 10.0.2.0/24
+│   └── Network Security Group: nsg-app-service
+
+Storage Layer:
+├── Storage Account: sttravelphotodev
+│   ├── Container: uploads (임시 저장)
+│   ├── Container: albums (정리된 사진)
+│   └── Container: archive (백업)
+
+Monitoring:
+└── Log Analytics: log-travelphoto-dev (30일 보존)
+```
+
+#### 🔄 **진행 중**
+- **Container Registry**: acrtravelphotodev (Terraform 모듈 완성)
+- **Container Apps**: ca-travelphoto-api-dev (ACR 연동 후 재배포)
+
+---
+
 ##  **프로젝트 개요**
 
-여행 후 수백 장의 사진을 수동으로 정리하는 번거로움을 해결하기 위한 AI 기반 자동 정리 시스템
+여행 후 수백 장의 사진을 수동으로 정리하는 번거로움을 해결하기 위한 클라우드 기반 자동 정리 시스템
 
 **핵심 가치:**
 -  **시간 절약**: 100장 사진 → 5분 내 자동 정리
--  **정확도**: GPS 기반 장소 인식 95%+ 정확도
+-  **정확도**: GPS 기반 장소 인식 90%+ 정확도
 -  **중복 제거**: 연속 촬영 사진 자동 감지 및 그룹핑
 
 ---
@@ -52,100 +86,65 @@ albums/
 ##  **기술 스택**
 
 ### **Backend**
-- **FastAPI** - 고성능 Python 웹 프레임워크
+- **FastAPI** (Python 3.11) - 고성능 비동기 웹 프레임워크
 - **Pillow** - EXIF 데이터 추출
-- **Geopy** - Geocoding (GPS → 주소 변환)
-- **Python 3.9**
+- **Geopy** - Geocoding (GPS → 주소 변환, Nominatim API)
+- **Uvicorn** - ASGI 서버
+
+### **Infrastructure (Azure)**
+- **Container Registry** - Docker 이미지 저장소 (Basic SKU)
+- **Container Apps** - 서버리스 컨테이너 실행 환경
+- **Blob Storage** - 이미지 파일 저장 (LRS, Standard)
+- **Virtual Network** - 네트워크 격리 및 보안
+- **Log Analytics** - 로그 수집 및 모니터링
+
+### **DevOps**
+- **Terraform** - Infrastructure as Code (모듈화 구조)
+- **Docker** - 컨테이너화 (멀티스테이지 빌드)
+- **Git/GitHub** - 버전 관리
+- **Azure DevOps Boards** - 프로젝트 관리 (Epic/Feature/Task)
 
 ### **Frontend**
 - **HTML/CSS/JavaScript** - 순수 웹 기술
-- **Drag & Drop API** - 직관적인 파일 업로드
-
-### **Infrastructure (Azure)**
-- **Azure Blob Storage** - 이미지 파일 저장
-- **Azure App Service** - 백엔드 호스팅
-- **Azure Container Apps** - 컨테이너 배포
-- **Terraform** - Infrastructure as Code
-
-### **DevOps**
-- **Docker** - 컨테이너화
-- **GitHub** - 버전 관리
-- **GitHub Actions** - CI/CD (예정)
-
----
-
-##  **프로젝트 성과**
-
-| 지표 | 성과 |
-|------|------|
-| EXIF 추출 성공률 | **95%+** |
-| GPS → 장소명 정확도 | **90%+** |
-| 중복 사진 감지율 | **95%+** |
-| 평균 처리 시간 (100장) | **< 5분** |
-| API 응답 시간 | **< 3초** |
-
----
-
-##  **아키텍처**
-
-### **3-Tier 구조**
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Backend       │    │   Data Layer    │
-│                 │    │                 │    │                 │
-│ React UI        │───▶│ FastAPI         │───▶│ Azure Blob      │
-│ Drag & Drop     │    │ + Python        │    │ Storage         │
-│                 │    │                 │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-### **데이터 플로우**
-<img width="850" height="772" alt="image" src="https://github.com/user-attachments/assets/ec2ec891-2451-4a43-bb55-b5c507442abd" />
-
-```
-사진 업로드 
-   ↓
-EXIF 데이터 추출 (GPS, 촬영시간)
-   ↓
-GPS → 장소명 변환 (Geopy API)
-   ↓
-메타데이터 저장 (JSON)
-   ↓
-중복 사진 자동 감지
-   ↓
-장소별/중복별 앨범 생성
-```
+- **Drag & Drop API** - 파일 업로드
 
 ---
 
 ## 📂 **프로젝트 구조**
 ```
-travel-photo-organizer/
-├── backend/
-│   ├── main.py                 # FastAPI 앱
-│   ├── exif_extractor.py       # EXIF 추출
-│   ├── geocoder.py             # GPS → 장소명 변환
-│   ├── duplicate_detector.py   # 중복 감지
-│   ├── album_organizer.py      # 앨범 생성
-│   ├── requirements.txt        # Python 의존성
-│   ├── Dockerfile              # Docker 설정
-│   └── .env                    # 환경변수
-├── frontend/
-│   └── index.html              # 웹 UI
-├── terraform/
-│   ├── main.tf                 # Azure 리소스 정의
-│   ├── variables.tf            # 변수 정의
-│   └── modules/                # Terraform 모듈
-│       ├── network/
-│       └── storage/
+TravelPhotoOrganizer/
+├── travel-photo-organizer/
+│   ├── backend/                # FastAPI 백엔드
+│   │   ├── app/
+│   │   │   ├── main.py        # API 엔드포인트
+│   │   │   └── routers/       # API 라우터
+│   │   ├── exif_extractor.py  # EXIF 데이터 추출
+│   │   ├── geocoder.py        # GPS → 주소 변환
+│   │   ├── duplicate_detector.py  # 중복 사진 감지
+│   │   ├── album_organizer.py     # 앨범 자동 생성
+│   │   ├── Dockerfile         # 컨테이너 이미지 정의
+│   │   └── requirements.txt   # Python 패키지
+│   └── frontend/
+│       └── index.html         # 웹 UI
+├── modules/                   # Terraform 모듈
+│   ├── network/              # VNet, Subnet, NSG
+│   ├── storage/              # Blob Storage
+│   ├── log_analytics/        # Log Analytics Workspace
+│   ├── container_registry/   # Azure Container Registry
+│   └── container_apps/       # Container Apps
+├── main.tf                   # Terraform 메인 파일
+├── variables.tf              # 변수 정의
+├── outputs.tf                # 출력 값
+├── backend.tf                # Remote State 설정
 └── README.md
 ```
 
+---
 
 ##  **로컬 실행 방법**
 
 ### **필수 요구사항**
-- Python 3.9+
+- Python 3.11+
 - Docker (선택)
 
 ### **1. 저장소 클론**
@@ -183,11 +182,13 @@ python3 -m http.server 3000
 cd travel-photo-organizer/backend
 
 # 이미지 빌드
-docker build -t travel-photo-backend .
+docker build -t travel-photo-api:latest .
 
 # 컨테이너 실행
-docker run -p 8000:8000 travel-photo-backend
+docker run -p 8000:8000 travel-photo-api:latest
 ```
+
+**API 문서 접속:** http://localhost:8000/docs
 
 ---
 
@@ -212,72 +213,188 @@ docker run -p 8000:8000 travel-photo-backend
 **상세 문서:** http://localhost:8000/docs
 
 ---
----
 
-##  **Terraform 인프라**
-
-### **배포된 Azure 리소스**
-
-#### **Network**
-- Resource Group: `rg-travelphoto-dev`
-- Virtual Network: `vnet-travelphoto` (10.0.0.0/16)
-- Subnets: Public (10.0.1.0/24), Private (10.0.2.0/24)
-- Network Security Group
-
-#### **Storage**
-- Storage Account: `sttravelphotodev`
-- Blob Containers: `uploads`, `albums`, `archive`
+##  **Terraform 인프라 배포**
 
 ### **배포 방법**
 ```bash
-cd terraform
-
-# 초기화
+# 1. Terraform 초기화
 terraform init
 
-# 계획 확인
+# 2. Dev 환경 선택
+terraform workspace select dev
+# 또는 새로 생성
+terraform workspace new dev
+
+# 3. 배포 계획 확인
 terraform plan
 
-# 배포
+# 4. 인프라 배포
+terraform apply
+```
+
+### **배포되는 리소스**
+```
+총 13개 Azure 리소스:
+├── Resource Group (1)
+├── Virtual Network (1)
+├── Subnets (2)
+├── Network Security Group (1)
+├── Storage Account (1)
+├── Blob Containers (3)
+├── Log Analytics Workspace (1)
+├── Container Registry (1)
+├── Container App Environment (1)
+└── Container App (1)
+```
+
+### **환경 분리 (Workspace)**
+```bash
+# Dev 환경
+terraform workspace select dev
+terraform apply
+
+# Prod 환경
+terraform workspace select prod
 terraform apply
 ```
 
 ---
 
-##  **예상 비용**
- **상세 비용 계산**: [Azure Pricing Calculator](https://azure.microsoft.com/ko-kr/pricing/calculator/)에서 정확한 비용 확인 가능
-| Azure 서비스 | 월 예상 비용 |
-|--------------|--------------|
-| App Service (B1) | $13 |
-| Blob Storage | $2-5 |
-| **총계** | **$15-18/월** |
+## 💰 **비용 관리**
 
-> 무료 크레딧 사용 시 비용 무료
+### **현재 월 비용 (dev 환경)**
+```
+Azure 서비스별 비용:
+├── Storage Account: ₩0.11/월
+├── Virtual Network: 무료
+├── NSG: 무료
+├── Log Analytics: ₩0.00/월 (최소 사용량)
+└── Container Apps: ₩0 (현재 삭제됨)
+
+총계: ₩0.13/월 (99.96% 절감 달성!)
+```
+
+### **절감 전략**
+- ✅ 미사용 Container Apps 삭제 (₩3,025 절감)
+- ✅ Basic SKU 사용 (개발 환경)
+- ✅ 리소스 태깅 및 모니터링
+- ✅ 자동 삭제 정책 (Archive container 30일 후 삭제)
+
+### **비용 추적**
+```bash
+# Azure Portal > Cost Management > Cost Analysis
+# Granularity: Daily
+# Group by: Service name
+```
 
 ---
 
-##  **학습 내용**
+##  **프로젝트 성과**
 
-### **기술적 도전**
-1. **EXIF 데이터 파싱** - Pillow 라이브러리 활용
-2. **비동기 API 설계** - FastAPI async/await
-3. **파일 시스템 관리** - Python pathlib
-4. **Infrastructure as Code** - Terraform 모듈화
+| 지표 | 성과 |
+|------|------|
+| **EXIF 추출 성공률** | 95%+ |
+| **GPS → 장소명 정확도** | 90%+ |
+| **중복 사진 감지율** | 95%+ |
+| **평균 처리 시간 (100장)** | < 5분 |
+| **API 응답 시간** | < 3초 |
+| **Docker 이미지 크기** | ~200MB |
+| **Terraform 리소스 수** | 13개 |
+| **비용 절감률** | 99.96% |
+
+---
+
+## 🎓 **학습 성과**
+
+### **기술적 성과**
+- ✅ **Terraform 모듈화 구조 설계** - Network, Storage, Container 모듈 분리
+- ✅ **Docker 멀티스테이지 빌드** - Python slim 이미지로 최적화
+- ✅ **FastAPI 비동기 API 구현** - async/await 패턴 활용
+- ✅ **Azure 네트워크 보안** - NSG, Private Subnet 설정
+- ✅ **Terraform Workspace** - dev/prod 환경 분리
 
 ### **해결한 문제**
-- GPS 좌표 정밀도 처리 (도/분/초 → 십진법 변환)
-- 한글 주소 변환 API 선택 (Azure Maps vs Nominatim)
-- Docker 이미지 크기 최적화 (멀티스테이지 빌드)
+
+#### 1. **EXIF GPS 정밀도 처리**
+```python
+# 도/분/초 → 십진법 변환
+def dms_to_decimal(degrees, minutes, seconds, direction):
+    decimal = degrees + (minutes / 60.0) + (seconds / 3600.0)
+    if direction in ['S', 'W']:
+        decimal = -decimal
+    return decimal
+```
+
+#### 2. **Docker 이미지 최적화**
+- Before: 500MB → After: 200MB (60% 감소)
+- Python slim 이미지 사용
+- 멀티스테이지 빌드 적용
+
+#### 3. **Terraform Backend State 관리**
+- Azure Blob Storage에 Remote State 저장
+- State Locking으로 동시 수정 방지
+
+#### 4. **Azure 비용 최적화**
+- Container Apps 삭제로 ₩3,025 → ₩0.13 (99.96% 절감)
+- 리소스 생명주기 관리
+
+---
+
+## 📊 **개발 현황**
+
+### ✅ **완료 (Sprint 1-2)**
+- [x] FastAPI RESTful API 개발
+  - Photos API (업로드, 조회)
+  - Albums API (생성, 조회)
+  - Health Check 엔드포인트
+- [x] Docker 컨테이너화
+  - Dockerfile 작성
+  - 로컬 빌드/실행 성공
+- [x] Terraform 인프라 모듈 작성
+  - Network (VNet, Subnet, NSG)
+  - Storage (Blob Storage, Containers)
+  - Log Analytics
+  - Container Registry
+  - Container Apps
+- [x] 비용 최적화
+  - ₩3,025 → ₩0.13/월 (99% 절감)
+
+### 🔄 **진행 중 (Sprint 3)**
+- [ ] Container Registry 배포
+- [ ] Docker 이미지 ACR Push
+- [ ] Container Apps ACR 연동
+- [ ] API 통합 테스트
+
+### 📅 **예정 (Sprint 4~)**
+- [ ] CI/CD 파이프라인 (GitHub Actions)
+- [ ] Azure OpenAI Vision API 연동
+- [ ] 모니터링 대시보드 (Grafana)
+- [ ] PostgreSQL 마이그레이션
 
 ---
 
 ##  **향후 개선 계획**
 
-- [ ] AI 이미지 분석 (Azure OpenAI Vision)
+### **Phase 1: AI 고도화**
+- [ ] Azure OpenAI Vision으로 이미지 내용 분석
+- [ ] 자동 태그 생성 (해변, 산, 도시 등)
+- [ ] 얼굴 인식 및 그룹핑
+
+### **Phase 2: 확장성**
 - [ ] SQLite → PostgreSQL 마이그레이션
-- [ ] CI/CD 파이프라인 (GitHub Actions)
-- [ ] 모바일 앱 (React Native)
-- [ ] 실시간 협업 기능
+- [ ] Redis 캐싱 추가
+- [ ] CDN 연동 (이미지 최적화)
+
+### **Phase 3: 협업 기능**
+- [ ] 다중 사용자 지원
+- [ ] 앨범 공유 기능
+- [ ] 실시간 협업 (WebSocket)
+
+### **Phase 4: DevOps**
+- [ ] GitHub Actions CI/CD
+- [ ] 자동 배포 파이프라인
+- [ ] 통합 테스트 자동화
 
 ---
 
@@ -285,9 +402,12 @@ terraform apply
 
 **이채림 (Chaelim Lee)**
 - 숙명여자대학교 소프트웨어학부
-- Email: your.email@example.com
 - GitHub: [@scarfaced000](https://github.com/scarfaced000)
-- LinkedIn: [Your LinkedIn]
+- Email: jazmyne@naver.com
+
+### **프로젝트 기간**
+- **시작일**: 2024년 11월
+- **현재 상태**: 진행 중 (Sprint 3)
 
 ---
 
@@ -299,31 +419,41 @@ MIT License
 
 ##  **Acknowledgments**
 
-- **FastAPI** 
+- **FastAPI** - 고성능 Python 웹 프레임워크
 - **Geopy** - Geocoding 서비스
+- **Terraform** - Infrastructure as Code
+- **Microsoft Azure** - 클라우드 플랫폼
 
 ---
 
-##  **스크린샷**
+##  **참고 자료**
 
-### 웹 UI
-> 여기에 스크린샷 추가 예정
+- [FastAPI 공식 문서](https://fastapi.tiangolo.com/)
+- [Terraform Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
+- [Azure Container Apps 문서](https://learn.microsoft.com/ko-kr/azure/container-apps/)
+- [Geopy 문서](https://geopy.readthedocs.io/)
 
-### API 문서 (Swagger)
-> 여기에 스크린샷 추가 예정
+---
 
-### 앨범 구조
+## 📸 **스크린샷**
+
+### API 문서 (Swagger UI)
+<img width="1200" alt="Swagger API Documentation" src="https://github.com/user-attachments/assets/ec2ec891-2451-4a43-bb55-b5c507442abd" />
+
+> 실제 스크린샷 추가 예정
+
+### 앨범 구조 예시
 ```
  정리 완료!
 
 📁 albums/
 ├── 📍 by_location/
-│   ├── 초당동/ (4장)
-│   └── 청라3동/ (1장)
+│   ├── 해운대구/ (45장)
+│   ├── 광안대교/ (32장)
+│   └── 강릉시/ (28장)
 └── 🔄 duplicates/
-    └── group_1/ (4장)
+    └── group_1/ (연속 촬영 10장)
 ```
 
 ---
-
 
