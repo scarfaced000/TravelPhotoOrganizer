@@ -440,8 +440,6 @@ MIT License
 ### API 문서 (Swagger UI)
 <img width="1200" alt="Swagger API Documentation" src="https://github.com/user-attachments/assets/ec2ec891-2451-4a43-bb55-b5c507442abd" />
 
-> 실제 스크린샷 추가 예정
-
 ### 앨범 구조 예시
 ```
  정리 완료!
@@ -456,4 +454,20 @@ MIT License
 ```
 
 ---
+## 🌐 Live Demo
 
+**API Documentation:** 
+https://ca-travelphoto-api-dev.wittygrass-d9ea239b.koreacentral.azurecontainerapps.io/docs
+
+**Health Check:**
+```bash
+curl https://ca-travelphoto-api-dev.wittygrass-d9ea239b.koreacentral.azurecontainerapps.io/health
+```
+
+## 📊 프로젝트 현황
+
+- Azure 인프라 배포 완료 (14개 리소스)
+- FastAPI 백엔드 운영 중
+- Container Registry 연동
+- Terraform IaC로 전체 인프라 관리
+  
