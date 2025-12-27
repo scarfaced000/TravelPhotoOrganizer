@@ -52,10 +52,13 @@ module "network" {
 module "storage" {
   source = "./modules/storage"
 
-  resource_group_name  = azurerm_resource_group.main.name
-  location             = azurerm_resource_group.main.location
-  storage_account_name = "st${var.project_name}${local.environment}"
-  containers           = ["uploads", "albums", "archive"]
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+
+  # workspace별로 완전히 다른 이름
+  storage_account_name = local.environment == "prod" ? "sttravelphotoprod" : "sttravelphotodev"
+
+  containers = ["uploads", "albums", "archive"]
 
   tags = local.common_tags
 }
@@ -72,7 +75,19 @@ module "log_analytics" {
   tags = local.common_tags
 }
 
-# Container Apps 모듈
+# Container Registry 모듈 
+module "container_registry" {
+  source = "./modules/container_registry"
+
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  registry_name       = "acr${var.project_name}${local.environment}"
+  sku                 = "Basic"
+
+  tags = local.common_tags
+}
+
+# Container Apps 모듈 (수정)
 module "container_apps" {
   source = "./modules/container_apps"
 
@@ -83,7 +98,7 @@ module "container_apps" {
 
   container_app_name = "ca-${var.project_name}-api-${var.environment}"
   container_name     = "fastapi-app"
-  container_image    = var.container_image
+  container_image    = "${module.container_registry.login_server}/travel-photo-api:latest"
   container_cpu      = 0.5
   container_memory   = "1Gi"
 
@@ -93,14 +108,21 @@ module "container_apps" {
   ingress_external_enabled = true
   ingress_target_port      = 8000
 
+  # ✅ ACR 인증 추가
+  registry_server               = module.container_registry.login_server
+  registry_username             = module.container_registry.admin_username
+  registry_password_secret_name = "acr-password"
+
   environment_variables = {
     ENVIRONMENT          = var.environment
     STORAGE_ACCOUNT_NAME = module.storage.storage_account_name
     AZURE_REGION         = var.location
   }
 
+  # ✅ Secrets에 ACR 비밀번호 추가
   secrets = {
     storage-account-key = module.storage.primary_access_key
+    acr-password        = module.container_registry.admin_password
   }
 
   tags = local.common_tags

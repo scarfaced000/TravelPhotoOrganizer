@@ -15,6 +15,8 @@ resource "azurerm_container_app" "main" {
   resource_group_name          = var.resource_group_name
   revision_mode                = "Single"
 
+
+
   template {
     container {
       name   = var.container_name
@@ -49,7 +51,7 @@ resource "azurerm_container_app" "main" {
   ingress {
     external_enabled = var.ingress_external_enabled
     target_port      = var.ingress_target_port
-    
+
     traffic_weight {
       latest_revision = true
       percentage      = 100
@@ -65,9 +67,9 @@ resource "azurerm_container_app" "main" {
     }
   }
 
-  # Container Registry 인증
+  # ✅ ACR Registry 인증 설정 추가
   dynamic "registry" {
-    for_each = var.registry_server != "" ? [1] : []
+    for_each = var.registry_server != null ? [1] : []
     content {
       server               = var.registry_server
       username             = var.registry_username

@@ -8,14 +8,3 @@ resource "azurerm_container_registry" "main" {
   tags = var.tags
 }
 
-# Container Registry 모듈
-module "container_registry" {
-  source = "./modules/container_registry"
-
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  registry_name       = "acr${var.project_name}${local.environment}"
-  sku                 = "Basic"
-
-  tags = local.common_tags
-}

@@ -14,13 +14,13 @@ variable "registry_name" {
 }
 
 variable "sku" {
-  description = "ACR SKU (Basic, Standard, Premium)"
+  description = "ACR SKU"
   type        = string
   default     = "Basic"
 }
 
 variable "tags" {
-  description = "리소스 태그"
+  description = "태그"
   type        = map(string)
   default     = {}
 }

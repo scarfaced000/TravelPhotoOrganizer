@@ -1,6 +1,13 @@
+# outputs.tf
+
 output "resource_group_name" {
   description = "Resource Group name"
   value       = azurerm_resource_group.main.name
+}
+
+output "resource_group_location" {
+  description = "Resource Group location"
+  value       = azurerm_resource_group.main.location
 }
 
 output "vnet_id" {
@@ -18,32 +25,22 @@ output "private_subnet_id" {
   value       = module.network.private_subnet_id
 }
 
-output "storage_account_name" {
-  description = "Storage Account name"
-  value       = module.storage.storage_account_name
+output "container_registry_login_server" {
+  description = "Container Registry 로그인 서버"
+  value       = module.container_registry.login_server
 }
 
-output "blob_endpoint" {
-  description = "Blob endpoint"
-  value       = module.storage.primary_blob_endpoint
-}
-
-output "container_names" {
-  description = "Container names"
-  value       = module.storage.container_names
+output "container_registry_name" {
+  description = "Container Registry 이름"
+  value       = module.container_registry.registry_name
 }
 
 output "container_app_url" {
-  description = "Container App 접속 URL"
-  value       = module.container_apps.container_app_url
-}
-
-output "container_app_fqdn" {
   description = "Container App FQDN"
-  value       = module.container_apps.container_app_fqdn
+  value       = module.container_apps.fqdn
 }
 
-output "log_analytics_workspace_id" {
-  description = "Log Analytics Workspace ID"
-  value       = module.log_analytics.workspace_id
+output "container_app_name" {
+  description = "Container App Name"
+  value       = module.container_apps.container_app_name
 }
