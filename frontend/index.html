@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Photo Organizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .api-link {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .api-link a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .api-link a:hover {
+            text-decoration: underline;
+        }
+
+        .file-list {
+            margin-top: 15px;
+            padding: 10px;
+            background: #f0f2ff;
+            border-radius: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            padding: 5px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 Travel Photo Organizer</h1>
+        <p class="subtitle">여행 사진을 GPS 기반으로 자동 정리하세요</p>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📤</div>
+            <h3>사진을 여기에 드래그하거나 클릭하세요</h3>
+            <p style="color: #999; margin-top: 10px;">JPG, PNG 파일 지원 (여러 장 가능)</p>
+            <input type="file" id="fileInput" accept="image/*" multiple>
+        </div>
+
+        <div class="file-list" id="fileList" style="display: none;"></div>
+
+        <button id="uploadBtn" disabled>📤 업로드</button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #667eea;">처리 중...</p>
+        </div>
+
+        <div class="result" id="result">
+            <h3>✅ 업로드 결과</h3>
+            <div id="resultContent"></div>
+        </div>
+
+        <div class="api-link">
+            <a href="https://ca-travelphoto-api-dev.wittygrass-d9ea239b.koreacentral.azurecontainerapps.io/docs" target="_blank">
+                📚 API 문서 보기
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://ca-travelphoto-api-dev.wittygrass-d9ea239b.koreacentral.azurecontainerapps.io';
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileList = document.getElementById('fileList');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const resultContent = document.getElementById('resultContent');
+
+        let selectedFiles = [];
+
+        // 클릭으로 파일 선택
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // 파일 선택 시
+        fileInput.addEventListener('change', (e) => {
+            selectedFiles = Array.from(e.target.files);
+            updateFileList();
+            updateUploadButton();
+        });
+
+        // 드래그 앤 드롭
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            selectedFiles = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+            fileInput.files = e.dataTransfer.files;
+            updateFileList();
+            updateUploadButton();
+        });
+
+        function updateFileList() {
+            if (selectedFiles.length > 0) {
+                fileList.style.display = 'block';
+                fileList.innerHTML = selectedFiles.map((f, i) => 
+                    `<div class="file-item">📷 ${i + 1}. ${f.name} (${(f.size / 1024).toFixed(1)} KB)</div>`
+                ).join('');
+            } else {
+                fileList.style.display = 'none';
+            }
+        }
+
+        function updateUploadButton() {
+            if (selectedFiles.length > 0) {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = `📤 ${selectedFiles.length}개 파일 업로드`;
+            } else {
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = '📤 업로드';
+            }
+        }
+
+        // 업로드 버튼 클릭
+        uploadBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) return;
+
+            loading.classList.add('show');
+            result.classList.remove('show');
+            uploadBtn.disabled = true;
+
+            const results = [];
+
+            for (const file of selectedFiles) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const response = await fetch(`${API_URL}/api/v1/photos/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    results.push({ file: file.name, data, success: response.ok });
+                } catch (error) {
+                    results.push({ file: file.name, error: error.message, success: false });
+                }
+            }
+
+            loading.classList.remove('show');
+            displayResults(results);
+            selectedFiles = [];
+            fileInput.value = '';
+            fileList.style.display = 'none';
+            updateUploadButton();
+        });
+
+        function displayResults(results) {
+            resultContent.innerHTML = '';
+            
+            results.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                
+                if (item.success) {
+                    div.innerHTML = `
+                        <strong>✅ ${item.file}</strong><br>
+                        📍 위치: ${item.data.location || '정보 없음'}<br>
+                        📅 촬영일: ${item.data.datetime || '정보 없음'}<br>
+                        🗺️ GPS: ${item.data.gps ? `${item.data.gps.latitude}, ${item.data.gps.longitude}` : '정보 없음'}
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <strong>❌ ${item.file}</strong><br>
+                        오류: ${item.error || '업로드 실패'}
+                    `;
+                }
+                
+                resultContent.appendChild(div);
+            });
+
+            result.classList.add('show');
+        }
+
+        // 페이지 로드 시 API 상태 확인
+        async function checkAPI() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                console.log('API Status:', data);
+            } catch (error) {
+                console.error('API Connection Failed:', error);
+            }
+        }
+
+        checkAPI();
+    </script>
+</body>
+</html>

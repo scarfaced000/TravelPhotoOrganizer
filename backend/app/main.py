@@ -4,11 +4,14 @@ from pydantic import BaseModel
 from typing import List, Optional
 import os
 from datetime import datetime
+from PIL import Image
+from PIL.ExifTags import TAGS, GPSTAGS
+import io
 
 app = FastAPI(
     title="Travel Photo Organizer API",
     description="Azure-based travel photo organization service",
-    version="1.0.0"
+    version="2.0.0"
 )
 
 # CORS 설정
@@ -48,13 +51,83 @@ class Album(BaseModel):
     created_at: str
 
 
+# EXIF 추출 함수
+def get_decimal_from_dms(dms, ref):
+    """DMS (도/분/초)를 십진법으로 변환"""
+    try:
+        degrees = float(dms[0])
+        minutes = float(dms[1])
+        seconds = float(dms[2])
+        
+        decimal = degrees + (minutes / 60.0) + (seconds / 3600.0)
+        
+        if ref in ['S', 'W']:
+            decimal = -decimal
+        
+        return decimal
+    except:
+        return None
+
+def extract_exif_data(image_bytes):
+    """이미지에서 EXIF 데이터 추출"""
+    try:
+        image = Image.open(io.BytesIO(image_bytes))
+        exif_data = image._getexif()
+        
+        if not exif_data:
+            return None
+        
+        exif = {}
+        gps_info = {}
+        
+        for tag_id, value in exif_data.items():
+            tag = TAGS.get(tag_id, tag_id)
+            
+            if tag == "GPSInfo":
+                for gps_tag_id, gps_value in value.items():
+                    gps_tag = GPSTAGS.get(gps_tag_id, gps_tag_id)
+                    gps_info[gps_tag] = gps_value
+            else:
+                exif[tag] = value
+        
+        result = {
+            "datetime": exif.get("DateTime", None),
+            "make": exif.get("Make", None),
+            "model": exif.get("Model", None),
+            "gps": None
+        }
+        
+        # GPS 좌표 추출
+        if gps_info.get("GPSLatitude") and gps_info.get("GPSLongitude"):
+            lat = get_decimal_from_dms(
+                gps_info["GPSLatitude"],
+                gps_info.get("GPSLatitudeRef", "N")
+            )
+            lon = get_decimal_from_dms(
+                gps_info["GPSLongitude"],
+                gps_info.get("GPSLongitudeRef", "E")
+            )
+            
+            if lat and lon:
+                result["gps"] = {
+                    "latitude": round(lat, 6),
+                    "longitude": round(lon, 6)
+                }
+        
+        return result
+    
+    except Exception as e:
+        print(f"EXIF 추출 오류: {str(e)}")
+        return None
+
+
 # Routes
 @app.get("/")
 async def root():
     """Root endpoint"""
     return {
         "message": "Welcome to Travel Photo Organizer API",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "docs": "/docs"
     }
 
@@ -72,7 +145,6 @@ async def health_check():
 @app.get("/api/v1/photos", response_model=List[PhotoMetadata])
 async def list_photos(skip: int = 0, limit: int = 100):
     """List all photos (mock data)"""
-    # TODO: Implement Azure Blob Storage integration
     mock_photos = [
         PhotoMetadata(
             id=f"photo_{i}",
@@ -87,23 +159,47 @@ async def list_photos(skip: int = 0, limit: int = 100):
 
 @app.post("/api/v1/photos/upload")
 async def upload_photo(file: UploadFile = File(...)):
-    """Upload a photo (mock)"""
-    # TODO: Implement Azure Blob Storage upload
+    """Upload a photo with EXIF extraction"""
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
     
-    return {
+    # 파일 읽기
+    contents = await file.read()
+    
+    # EXIF 데이터 추출
+    exif_data = extract_exif_data(contents)
+    
+    response = {
+        "success": True,
         "message": "Photo uploaded successfully",
         "filename": file.filename,
+        "size": len(contents),
         "content_type": file.content_type,
         "storage": "azure_blob_storage",
         "container": "uploads"
     }
+    
+    # EXIF 데이터가 있으면 추가
+    if exif_data:
+        response.update({
+            "datetime": exif_data.get("datetime"),
+            "gps": exif_data.get("gps"),
+            "camera": f"{exif_data.get('make', '')} {exif_data.get('model', '')}".strip(),
+            "location": None  # TODO: GPS → 주소 변환 (Geocoding)
+        })
+    else:
+        response.update({
+            "datetime": None,
+            "gps": None,
+            "camera": None,
+            "location": None
+        })
+    
+    return response
 
 @app.get("/api/v1/albums", response_model=List[Album])
 async def list_albums():
     """List all albums (mock data)"""
-    # TODO: Implement database integration
     mock_albums = [
         Album(
             id="album_1",
@@ -125,7 +221,6 @@ async def list_albums():
 @app.post("/api/v1/albums")
 async def create_album(album: Album):
     """Create a new album (mock)"""
-    # TODO: Implement database integration
     return {
         "message": "Album created successfully",
         "album": album
@@ -134,7 +229,6 @@ async def create_album(album: Album):
 @app.get("/api/v1/albums/{album_id}")
 async def get_album(album_id: str):
     """Get album details (mock)"""
-    # TODO: Implement database integration
     return Album(
         id=album_id,
         name="Sample Album",
