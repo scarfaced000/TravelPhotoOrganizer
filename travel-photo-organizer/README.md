@@ -261,47 +261,11 @@ terraform apply
 
 ---
 
-## 💰 **비용 관리**
 
-### **현재 월 비용 (dev 환경)**
-```
-Azure 서비스별 비용:
-├── Storage Account: ₩0.11/월
-├── Virtual Network: 무료
-├── NSG: 무료
-├── Log Analytics: ₩0.00/월 (최소 사용량)
-└── Container Apps: ₩0 (현재 삭제됨)
-
-총계: ₩0.13/월 (99.96% 절감 달성!)
-```
-
-### **절감 전략**
-- ✅ 미사용 Container Apps 삭제 (₩3,025 절감)
-- ✅ Basic SKU 사용 (개발 환경)
-- ✅ 리소스 태깅 및 모니터링
-- ✅ 자동 삭제 정책 (Archive container 30일 후 삭제)
-
-### **비용 추적**
-```bash
-# Azure Portal > Cost Management > Cost Analysis
-# Granularity: Daily
-# Group by: Service name
-```
 
 ---
 
-##  **프로젝트 성과**
 
-| 지표 | 성과 |
-|------|------|
-| **EXIF 추출 성공률** | 95%+ |
-| **GPS → 장소명 정확도** | 90%+ |
-| **중복 사진 감지율** | 95%+ |
-| **평균 처리 시간 (100장)** | < 5분 |
-| **API 응답 시간** | < 3초 |
-| **Docker 이미지 크기** | ~200MB |
-| **Terraform 리소스 수** | 13개 |
-| **비용 절감률** | 99.96% |
 
 ---
 
@@ -335,9 +299,7 @@ def dms_to_decimal(degrees, minutes, seconds, direction):
 - Azure Blob Storage에 Remote State 저장
 - State Locking으로 동시 수정 방지
 
-#### 4. **Azure 비용 최적화**
-- Container Apps 삭제로 ₩3,025 → ₩0.13 (99.96% 절감)
-- 리소스 생명주기 관리
+
 
 ---
 
@@ -386,15 +348,8 @@ def dms_to_decimal(degrees, minutes, seconds, direction):
 - [ ] Redis 캐싱 추가
 - [ ] CDN 연동 (이미지 최적화)
 
-### **Phase 3: 협업 기능**
-- [ ] 다중 사용자 지원
-- [ ] 앨범 공유 기능
-- [ ] 실시간 협업 (WebSocket)
 
-### **Phase 4: DevOps**
-- [ ] GitHub Actions CI/CD
-- [ ] 자동 배포 파이프라인
-- [ ] 통합 테스트 자동화
+
 
 ---
 
